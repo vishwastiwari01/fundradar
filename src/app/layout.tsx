@@ -26,6 +26,8 @@ export const metadata: Metadata = {
   description: "Find the funding your startup deserves. We scrape VCs, grants, accelerators, and hackathons daily.",
 };
 
+import StyledComponentsRegistry from "../lib/registry";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -33,7 +35,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${instrumentSerif.variable} ${dmMono.variable} ${syne.variable}`}>
-      <body>{children}</body>
+      <body>
+        <StyledComponentsRegistry>
+          {children}
+        </StyledComponentsRegistry>
+      </body>
     </html>
   );
 }

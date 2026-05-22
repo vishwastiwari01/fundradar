@@ -1,7 +1,14 @@
 "use client";
+
 import React, { useState, useEffect } from 'react';
 import { opportunities as staticOpportunities, Opportunity } from '../data/opportunities';
 import { supabase } from '../lib/supabase';
+import { CinematicHero } from '@/components/ui/CinematicHero';
+import { LinkPreview } from '@/components/ui/LinkPreview';
+import { WalletCard } from '@/components/ui/WalletCard';
+import { RetroTV } from '@/components/ui/RetroTV';
+import { WordsPullUp } from '@/components/ui/WordsPullUp';
+import { ElegantShape } from '@/components/ui/HeroGeometric';
 
 export default function Home() {
   const [opportunities, setOpportunities] = useState<Opportunity[]>(staticOpportunities);
@@ -12,13 +19,21 @@ export default function Home() {
   const [minFund, setMinFund] = useState(10);
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Fetch Opportunities from Supabase on mount
   useEffect(() => {
     async function fetchOpps() {
       try {
-        const { data, error } = await supabase.from('opportunities').select('*').order('deadline', { ascending: true });
+        const { data, error } = await supabase
+          .from('opportunities')
+          .select('*')
+          .order('deadline', { ascending: true });
+        
         if (data && data.length > 0) {
           // Normalize names for compatibility
-          const normalized = data.map(o => ({...o, logoBg: o.logo_bg || o.logoBg}));
+          const normalized = data.map(o => ({
+            ...o, 
+            logoBg: o.logo_bg || o.logoBg || 'var(--accent-dim)'
+          }));
           setOpportunities(normalized);
         }
       } catch (err) {
@@ -83,7 +98,15 @@ export default function Home() {
     if (activeTab === 'Grants' && opp.type !== 'grant') return false;
     if (activeFilter && opp.type !== activeFilter && activeFilter !== '') return false;
     if (opp.amount_min < minFund * 1000) return false;
-    if (searchTerm && !opp.name.toLowerCase().includes(searchTerm.toLowerCase()) && !opp.organization.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+    
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      const matchesName = opp.name?.toLowerCase().includes(term);
+      const matchesOrg = opp.organization?.toLowerCase().includes(term);
+      const matchesDesc = opp.description?.toLowerCase().includes(term);
+      const matchesSector = opp.sector_tags?.some(tag => tag.toLowerCase().includes(term));
+      if (!matchesName && !matchesOrg && !matchesDesc && !matchesSector) return false;
+    }
     return true;
   });
 
@@ -113,7 +136,14 @@ export default function Home() {
   const formatDeadline = (date: string) => {
     if (date === 'rolling') return 'Rolling';
     const d = new Date(date);
+    if (isNaN(d.getTime())) return date;
     return `${d.toLocaleString('default', { month: 'short' })} ${d.getDate()}`;
+  };
+
+  const getUrl = (url: string) => {
+    if (!url) return '#';
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    return `https://${url}`;
   };
 
   return (
@@ -129,42 +159,18 @@ export default function Home() {
           <li><a href="#premium">Pricing</a></li>
           <li><a href="#explore">VCs</a></li>
         </ul>
-        <button className="nav-cta">Get Early Access</button>
+        <button className="nav-cta" onClick={() => document.getElementById('premium')?.scrollIntoView({ behavior: 'smooth' })}>Get Early Access</button>
       </nav>
 
-      {/* HERO */}
-      <section className="hero">
-        <div className="hero-grid"></div>
-        <div className="hero-glow"></div>
-        <div className="hero-badge">
-          <div className="badge-pulse"></div>
-          Live — 2,400+ Opportunities Updated Daily
-        </div>
-        <h1>Find the <em>funding</em> your startup deserves</h1>
-        <p className="hero-sub">We scrape VCs, grants, accelerators, and funded hackathons daily — so you focus on building, not hunting.</p>
-        <div className="hero-actions">
-          <button className="btn-primary" onClick={() => document.getElementById('listings')?.scrollIntoView({ behavior: 'smooth' })}>Explore Opportunities →</button>
-          <button className="btn-ghost" onClick={() => document.getElementById('how')?.scrollIntoView({ behavior: 'smooth' })}>See How It Works</button>
-        </div>
-        <div className="hero-stats">
-          <div className="stat-item">
-            <div className="stat-num">2,400+</div>
-            <div className="stat-label">Active Opportunities</div>
-          </div>
-          <div className="stat-item">
-            <div className="stat-num">$4.2B</div>
-            <div className="stat-label">Funding Indexed</div>
-          </div>
-          <div className="stat-item">
-            <div className="stat-num">840</div>
-            <div className="stat-label">VCs Tracked</div>
-          </div>
-          <div className="stat-item">
-            <div className="stat-num">120+</div>
-            <div className="stat-label">Hackathons / Month</div>
-          </div>
-        </div>
-      </section>
+      {/* DYNAMIC CINEMATIC HERO */}
+      <CinematicHero 
+        brandName="FundRadar"
+        tagline1="Stop hunting."
+        tagline2="Start building."
+        cardHeading="Every opportunity, cataloged."
+        metricValue={opportunities.length > staticOpportunities.length ? opportunities.length : 2400}
+        metricLabel="Active Funds"
+      />
 
       {/* TICKER */}
       <div className="ticker-wrap">
@@ -181,53 +187,95 @@ export default function Home() {
         </div>
       </div>
 
-      {/* CATEGORIES */}
-      <section className="categories-section" id="explore">
-        <div className="section-header">
+      {/* BROWSE CATEGORIES */}
+      <section className="categories-section relative" id="explore">
+        {/* Subtle geometric overlay background */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-30">
+          <ElegantShape
+            delay={0.5}
+            width={300}
+            height={90}
+            rotate={15}
+            gradient="from-indigo-500/[0.12]"
+            className="left-[-5%] top-[10%]"
+          />
+          <ElegantShape
+            delay={0.8}
+            width={250}
+            height={80}
+            rotate={-20}
+            gradient="from-rose-500/[0.12]"
+            className="right-[5%] bottom-[5%]"
+          />
+        </div>
+
+        <div className="section-header relative z-10">
           <div>
             <div className="section-tag">Browse by Type</div>
-            <h2>Every kind of <em>capital</em></h2>
+            <h2>
+              <WordsPullUp text="Every kind of capital" />
+            </h2>
           </div>
-          <a href="#" className="see-all">See all →</a>
+          <a href="#listings" className="see-all">See all opportunities →</a>
         </div>
-        <div className="cat-grid">
-          <div className="cat-card" onClick={() => setFilter('vc')}>
-            <div className="cat-accent" style={{ background: 'var(--blue)' }}></div>
-            <div className="cat-icon">🏦</div>
-            <div className="cat-title">Venture Capital</div>
-            <div className="cat-count">840 firms tracked</div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-10 items-center relative z-10">
+          <div className="cat-grid">
+            <div className="cat-card" onClick={() => setFilter('vc')}>
+              <div className="cat-accent" style={{ background: 'var(--blue)' }}></div>
+              <div className="cat-icon">🏦</div>
+              <div className="cat-title">Venture Capital</div>
+              <div className="cat-count">840 firms tracked</div>
+            </div>
+            <div className="cat-card" onClick={() => setFilter('accelerator')}>
+              <div className="cat-accent" style={{ background: 'var(--orange)' }}></div>
+              <div className="cat-icon">🚀</div>
+              <div className="cat-title">Accelerators</div>
+              <div className="cat-count">210 programs</div>
+            </div>
+            <div className="cat-card" onClick={() => setFilter('hackathon')}>
+              <div className="cat-accent" style={{ background: 'var(--pink)' }}></div>
+              <div className="cat-icon">⚡</div>
+              <div className="cat-title">Hackathons</div>
+              <div className="cat-count">120+ this month</div>
+            </div>
+            <div className="cat-card" onClick={() => setFilter('grant')}>
+              <div className="cat-accent" style={{ background: 'var(--accent)' }}></div>
+              <div className="cat-icon">🎯</div>
+              <div className="cat-title">Grants & Awards</div>
+              <div className="cat-count">340 active grants</div>
+            </div>
+            <div className="cat-card" onClick={() => setFilter('credits')}>
+              <div className="cat-accent" style={{ background: '#a78bfa' }}></div>
+              <div className="cat-icon">☁️</div>
+              <div className="cat-title">Cloud Credits</div>
+              <div className="cat-count">AWS, GCP, Azure</div>
+            </div>
           </div>
-          <div className="cat-card" onClick={() => setFilter('accelerator')}>
-            <div className="cat-accent" style={{ background: 'var(--orange)' }}></div>
-            <div className="cat-icon">🚀</div>
-            <div className="cat-title">Accelerators</div>
-            <div className="cat-count">210 programs</div>
-          </div>
-          <div className="cat-card" onClick={() => setFilter('hackathon')}>
-            <div className="cat-accent" style={{ background: 'var(--pink)' }}></div>
-            <div className="cat-icon">⚡</div>
-            <div className="cat-title">Hackathons</div>
-            <div className="cat-count">120+ this month</div>
-          </div>
-          <div className="cat-card" onClick={() => setFilter('grant')}>
-            <div className="cat-accent" style={{ background: 'var(--accent)' }}></div>
-            <div className="cat-icon">🎯</div>
-            <div className="cat-title">Grants & Awards</div>
-            <div className="cat-count">340 active grants</div>
-          </div>
-          <div className="cat-card" onClick={() => setFilter('credits')}>
-            <div className="cat-accent" style={{ background: '#a78bfa' }}></div>
-            <div className="cat-icon">☁️</div>
-            <div className="cat-title">Cloud Credits</div>
-            <div className="cat-count">AWS, GCP, Azure</div>
+
+          <div className="flex justify-center w-full">
+            <WalletCard />
           </div>
         </div>
       </section>
 
       {/* LISTINGS */}
-      <section className="listings-section" id="listings">
+      <section className="listings-section relative" id="listings">
+        <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-20">
+          <ElegantShape
+            delay={0.2}
+            width={400}
+            height={110}
+            rotate={-12}
+            gradient="from-emerald-500/[0.1]"
+            className="right-[-10%] top-[20%]"
+          />
+        </div>
+
         <div className="section-tag">Live Opportunities</div>
-        <h2 style={{ marginBottom: '2rem' }}>Curated for <em>builders</em></h2>
+        <h2 style={{ marginBottom: '2rem' }}>
+          Curated for <em>builders</em>
+        </h2>
 
         <div className="listings-grid">
           {/* FILTER PANEL */}
@@ -265,7 +313,7 @@ export default function Home() {
               <label className="filter-option"><input type="checkbox" /> <label>FinTech</label></label>
             </div>
 
-            <button className="btn-primary" style={{ width: '100%', fontSize: '0.875rem' }} onClick={() => setActiveFilter('')}>Reset Filters</button>
+            <button className="btn-primary" style={{ width: '100%', fontSize: '0.875rem' }} onClick={() => { setActiveFilter(''); setSearchTerm(''); setMinFund(10); }}>Reset Filters</button>
           </div>
 
           {/* RESULTS */}
@@ -297,24 +345,41 @@ export default function Home() {
                 <circle cx="11" cy="11" r="8" />
                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
-              <input type="text" placeholder="Search by name, keyword, sector..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+              <input type="text" placeholder="Search by name, organization, sector, description..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+              {searchTerm && (
+                <button 
+                  onClick={() => setSearchTerm('')} 
+                  style={{ background: 'none', border: 'none', color: 'var(--text3)', marginRight: '8px', cursor: 'pointer', fontSize: '1.2rem' }}
+                >
+                  ×
+                </button>
+              )}
               <button className="search-btn">Search</button>
             </div>
 
             <div className="card-list">
               {filteredOpportunities.map((opp, idx) => (
                 <div key={opp.id} className={`fund-card ${idx === 0 ? 'featured' : ''}`}>
-                  <div className="fund-logo" style={{ background: opp.logoBg }}>{opp.logo}</div>
+                  <div className="fund-logo" style={{ background: opp.logoBg || 'var(--accent-dim)' }}>{opp.logo}</div>
                   <div className="fund-main">
                     <div className="fund-header">
-                      <span className="fund-name">{opp.name}</span>
-                      <span className={`tag ${getTagClass(opp.type)}`}>{getTypeLabel(opp.type)}</span>
+                      {/* Premium hover LinkPreview integrated */}
+                      <LinkPreview url={getUrl(opp.source_url)} className="fund-name font-bold hover:text-[#c8f135] transition-colors duration-200">
+                        {opp.name}
+                      </LinkPreview>
+                      <span className={`tag ${getTagClass(opp.type)}`} style={{ marginLeft: '8px' }}>{getTypeLabel(opp.type)}</span>
                     </div>
                     <p className="fund-desc">{opp.description}</p>
                     <div className="fund-meta">
-                      {opp.geo_restriction.map((geo, i) => <span key={i} className="fund-meta-item">📍 <strong style={{textTransform:'capitalize'}}>{geo}</strong></span>)}
-                      <span className="fund-meta-item">🎯 <strong>{opp.sector_tags.join(', ')}</strong></span>
-                      {opp.eligibility.students_allowed && <span className="fund-meta-item">🎓 <strong>Students Allowed</strong></span>}
+                      {opp.geo_restriction && opp.geo_restriction.map((geo, i) => (
+                        <span key={i} className="fund-meta-item">📍 <strong style={{textTransform:'capitalize'}}>{geo}</strong></span>
+                      ))}
+                      {opp.sector_tags && (
+                        <span className="fund-meta-item">🎯 <strong>{opp.sector_tags.join(', ')}</strong></span>
+                      )}
+                      {opp.eligibility?.students_allowed && (
+                        <span className="fund-meta-item">🎓 <strong>Students Allowed</strong></span>
+                      )}
                     </div>
                     {deckUploaded && (
                       <button 
@@ -340,8 +405,14 @@ export default function Home() {
                 </div>
               ))}
 
+              {/* Skeuomorphic RetroTV displays on zero search results */}
               {filteredOpportunities.length === 0 && (
-                <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text3)' }}>No opportunities found. Try adjusting your filters.</div>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem', border: '1px dashed var(--border)', borderRadius: '14px', background: 'var(--bg2)' }}>
+                  <RetroTV message="NO MATCHES" />
+                  <p style={{ color: 'var(--text3)', fontSize: '0.9rem', marginTop: '-1.5rem', textAlign: 'center', maxWidth: '320px', lineHeight: 1.5 }}>
+                    No funds indexed matching these parameters. Reset filters or search for another keyword.
+                  </p>
+                </div>
               )}
             </div>
           </div>
@@ -381,7 +452,19 @@ export default function Home() {
       </section>
 
       {/* PREMIUM SECTION */}
-      <section className="premium-section" id="premium">
+      <section className="premium-section relative" id="premium">
+        {/* Subtle geometric circles background */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-25">
+          <ElegantShape
+            delay={0.6}
+            width={350}
+            height={90}
+            rotate={-15}
+            gradient="from-[#ff6b9d]/[0.1]"
+            className="left-[10%] top-[40%]"
+          />
+        </div>
+
         <div className="section-tag" style={{ color: 'var(--pink)' }}>Pro Feature</div>
         <h2 style={{ marginBottom: '2rem' }}>AI Pitch <em>Autofill</em></h2>
         <div className="premium-card">
@@ -477,7 +560,19 @@ export default function Home() {
             </div>
             <div style={{ padding: '1.5rem', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: '1rem', background: 'var(--bg)' }}>
               <button className="btn-ghost" onClick={() => setAutofillModalOpen(false)}>Cancel</button>
-              <button className="btn-primary" style={{ background: autofillProgress === 100 ? 'var(--accent)' : 'var(--bg3)', color: autofillProgress === 100 ? '#000' : 'var(--text3)', pointerEvents: autofillProgress === 100 ? 'auto' : 'none' }}>
+              <button 
+                className="btn-primary" 
+                style={{ 
+                  background: autofillProgress === 100 ? 'var(--accent)' : 'var(--bg3)', 
+                  color: autofillProgress === 100 ? '#000' : 'var(--text3)', 
+                  pointerEvents: autofillProgress === 100 ? 'auto' : 'none',
+                  cursor: autofillProgress === 100 ? 'pointer' : 'default'
+                }}
+                onClick={() => {
+                  alert("Application submitted successfully through FundRadar AI!");
+                  setAutofillModalOpen(false);
+                }}
+              >
                 Submit Application
               </button>
             </div>
