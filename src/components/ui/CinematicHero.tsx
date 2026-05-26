@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { cn } from "@/lib/utils";
@@ -10,6 +10,9 @@ if (typeof window !== "undefined") {
 }
 
 const INJECTED_STYLES = `
+  :root {
+      --color-foreground: #ffffff;
+  }
   .gsap-reveal { visibility: hidden; }
   /* Environment Overlays */
   .film-grain {
@@ -148,10 +151,18 @@ const INJECTED_STYLES = `
   }
   .progress-ring {
       transform: rotate(-90deg);
-      transform-origin: center;
+      transform-origin: 88px 88px;
       stroke-dasharray: 402;
       stroke-dashoffset: 402;
       stroke-linecap: round;
+      animation: fill-ring 2.5s cubic-bezier(0.16, 1, 0.3, 1) forwards, spin-ring 25s linear infinite 2.5s;
+  }
+  @keyframes fill-ring {
+      to { stroke-dashoffset: 60; }
+  }
+  @keyframes spin-ring {
+      from { transform: rotate(-90deg); }
+      to { transform: rotate(270deg); }
   }
 `;
 
@@ -166,6 +177,25 @@ export interface CinematicHeroProps extends React.HTMLAttributes<HTMLDivElement>
   ctaHeading?: string;
   ctaDescription?: string;
 }
+
+const LOG_POOL = [
+  "Scraping Y Combinator portal...",
+  "✓ 1 new accelerator opportunity found",
+  "Scraping Sequoia Capital site...",
+  "✓ Sequoia Arc Seed round updated",
+  "Crawling GovGrants database...",
+  "✓ Found $150K Non-dilutive grant",
+  "Checking ETHGlobal registrations...",
+  "✓ ETHGlobal Brussels synced ($200K)",
+  "Analyzing pitch deck context...",
+  "✓ AI pitch parsing completed (98% match)",
+  "Scanning AWS Activate credits...",
+  "✓ AWS $100K Credits synced",
+  "Scraping Founders Fund pipeline...",
+  "✓ Seed Round Indexed",
+  "Auto-generating application template...",
+  "✓ Application drafted successfully",
+];
 
 export function CinematicHero({ 
   brandName = "FundRadar",
@@ -185,6 +215,59 @@ export function CinematicHero({
   const mainCardRef = useRef<HTMLDivElement>(null);
   const mockupRef = useRef<HTMLDivElement>(null);
   const requestRef = useRef<number>(0);
+
+  const [liveCounter, setLiveCounter] = useState(0);
+  const [logs, setLogs] = useState<string[]>([
+    "Initializing FundRadar Engine...",
+    "Crawling 840 VC portals...",
+    "Scanning MLH hackathons...",
+  ]);
+
+  useEffect(() => {
+    // Animate the counter to its initial metricValue over 2.5 seconds
+    let start = 0;
+    const end = metricValue;
+    const duration = 2500;
+    const startTime = performance.now();
+
+    const animate = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      // Ease out expo
+      const easeProgress = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+      const current = Math.floor(easeProgress * end);
+      setLiveCounter(current);
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        startLiveUpdates();
+      }
+    };
+
+    let intervalId: NodeJS.Timeout;
+    const startLiveUpdates = () => {
+      let poolIndex = 0;
+      intervalId = setInterval(() => {
+        setLogs((prev) => {
+          const nextLogs = [...prev, LOG_POOL[poolIndex]];
+          if (nextLogs.length > 4) {
+            nextLogs.shift();
+          }
+          return nextLogs;
+        });
+        
+        setLiveCounter((prev) => prev + Math.floor(Math.random() * 3) + 1);
+        poolIndex = (poolIndex + 1) % LOG_POOL.length;
+      }, 2500);
+    };
+
+    requestAnimationFrame(animate);
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [metricValue]);
 
   // 1. High-Performance Mouse Interaction Logic (Using requestAnimationFrame)
   useEffect(() => {
@@ -253,8 +336,6 @@ export function CinematicHero({
           { y: 0, z: 0, rotationX: 0, rotationY: 0, autoAlpha: 1, scale: 1, ease: "expo.out", duration: 2.5 }, "-=0.8"
         )
         .fromTo(".phone-widget", { y: 40, autoAlpha: 0, scale: 0.95 }, { y: 0, autoAlpha: 1, scale: 1, stagger: 0.15, ease: "back.out(1.2)", duration: 1.5 }, "-=1.5")
-        .to(".progress-ring", { strokeDashoffset: 60, duration: 2, ease: "power3.inOut" }, "-=1.2")
-        .to(".counter-val", { innerHTML: metricValue, snap: { innerHTML: 1 }, duration: 2, ease: "expo.out" }, "-=2.0")
         .fromTo(".floating-badge", { y: 100, autoAlpha: 0, scale: 0.7, rotationZ: -10 }, { y: 0, autoAlpha: 1, scale: 1, rotationZ: 0, ease: "back.out(1.5)", duration: 1.5, stagger: 0.2 }, "-=2.0")
         .fromTo(".card-left-text", { x: -50, autoAlpha: 0 }, { x: 0, autoAlpha: 1, ease: "power4.out", duration: 1.5 }, "-=1.5")
         .fromTo(".card-right-text", { x: 50, autoAlpha: 0, scale: 0.8 }, { x: 0, autoAlpha: 1, scale: 1, ease: "expo.out", duration: 1.5 }, "<")
@@ -300,7 +381,7 @@ export function CinematicHero({
         <h1 className="text-track gsap-reveal text-3d-matte text-5xl md:text-7xl lg:text-[6rem] font-bold tracking-tight mb-2">
           {tagline1}
         </h1>
-        <h1 className="text-days gsap-reveal text-silver-matte text-5xl md:text-7xl lg:text-[6rem] font-extrabold tracking-tighter">
+        <h1 className="text-days gsap-reveal text-silver-matte text-5xl md:text-7xl lg:text-[6rem] font-extrabold tracking-tighter pr-6 pb-2">
           {tagline2}
         </h1>
       </div>
@@ -393,30 +474,27 @@ export function CinematicHero({
                           <circle className="progress-ring" cx="88" cy="88" r="64" fill="none" stroke="#c8f135" strokeWidth="10" />
                         </svg>
                         <div className="text-center z-10 flex flex-col items-center">
-                          <span className="counter-val text-4xl font-extrabold tracking-tighter text-white">0</span>
+                          <span className="counter-val text-4xl font-extrabold tracking-tighter text-white">{liveCounter}</span>
                           <span className="text-[8px] text-[#c8f135]/70 uppercase tracking-[0.1em] font-bold mt-0.5">{metricLabel}</span>
                         </div>
                       </div>
 
-                      {/* Stat widgets */}
-                      <div className="space-y-3">
-                        <div className="phone-widget widget-depth rounded-2xl p-2.5 flex items-center">
-                          <div className="w-8 h-8 rounded-xl bg-blue-500/10 flex items-center justify-center mr-2.5 border border-blue-400/20 shadow-inner">
-                            <span className="text-xs">⚡</span>
-                          </div>
-                          <div className="flex-1 text-left">
-                            <div className="text-[10px] font-bold text-white leading-tight">AI Pitch Extracted</div>
-                            <div className="text-[8px] text-neutral-400">pitch_deck_v3.pdf</div>
-                          </div>
+                      {/* Live Scanning Engine Console */}
+                      <div className="phone-widget widget-depth rounded-2xl p-3 flex flex-col gap-1.5 h-[120px] overflow-hidden text-left font-mono">
+                        <div className="flex items-center justify-between border-b border-white/5 pb-1 mb-1">
+                          <span className="text-[8px] text-[#c8f135] font-bold tracking-wider flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#c8f135] animate-pulse" />
+                            ENGINE: ACTIVE
+                          </span>
+                          <span className="text-[7px] text-neutral-500">Live feed</span>
                         </div>
-                        <div className="phone-widget widget-depth rounded-2xl p-2.5 flex items-center">
-                          <div className="w-8 h-8 rounded-xl bg-[#ff6b9d]/10 flex items-center justify-center mr-2.5 border border-[#ff6b9d]/20 shadow-inner">
-                            <span className="text-xs">✨</span>
-                          </div>
-                          <div className="flex-1 text-left">
-                            <div className="text-[10px] font-bold text-white leading-tight">Application Autofilled</div>
-                            <div className="text-[8px] text-neutral-400">Ready to submit</div>
-                          </div>
+                        <div className="space-y-1.5 overflow-hidden h-[85px] flex flex-col justify-end">
+                          {logs.map((log, i) => (
+                            <div key={i} className="text-[8px] leading-tight text-neutral-300 truncate">
+                              <span className="text-neutral-500 mr-1">&gt;</span>
+                              {log}
+                            </div>
+                          ))}
                         </div>
                       </div>
                       <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[120px] h-[4px] bg-white/10 rounded-full shadow-[0_1px_2px_rgba(0,0,0,0.5)]" />

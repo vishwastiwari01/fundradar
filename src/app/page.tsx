@@ -166,7 +166,7 @@ export default function Home() {
       <CinematicHero 
         brandName="FundRadar"
         tagline1="Stop hunting."
-        tagline2="Start building."
+        tagline2="Start building. "
         cardHeading="Every opportunity, cataloged."
         metricValue={opportunities.length > staticOpportunities.length ? opportunities.length : 2400}
         metricLabel="Active Funds"
