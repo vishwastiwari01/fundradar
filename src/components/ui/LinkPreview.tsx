@@ -1,7 +1,6 @@
 "use client";
 
 import * as HoverCardPrimitive from "@radix-ui/react-hover-card";
-import Image from "next/image";
 import { encode } from "qss";
 import React from "react";
 import {
@@ -57,6 +56,7 @@ export const LinkPreview = ({
 
   const [isOpen, setOpen] = React.useState(false);
   const [isMounted, setIsMounted] = React.useState(false);
+  const [hasError, setHasError] = React.useState(false);
 
   React.useEffect(() => {
     setIsMounted(true);
@@ -75,16 +75,12 @@ export const LinkPreview = ({
 
   return (
     <>
-      {isMounted ? (
+      {isMounted && !hasError ? (
         <div className="hidden">
-          <Image
+          <img
             src={src}
-            width={width}
-            height={height}
-            quality={quality}
-            layout={layout}
-            priority={true}
             alt="hidden image"
+            onError={() => setHasError(true)}
           />
         </div>
       ) : null}
@@ -136,16 +132,26 @@ export const LinkPreview = ({
                   className="block p-1 bg-white border-2 border-transparent shadow rounded-xl hover:border-neutral-200 dark:hover:border-neutral-800"
                   style={{ fontSize: 0 }}
                 >
-                  <Image
-                    src={isStatic ? imageSrc : src}
-                    width={width}
-                    height={height}
-                    quality={quality}
-                    layout={layout}
-                    priority={true}
-                    className="rounded-lg"
-                    alt="preview image"
-                  />
+                  {!hasError ? (
+                    <img
+                      src={isStatic ? imageSrc : src}
+                      width={width}
+                      height={height}
+                      className="rounded-lg object-cover"
+                      alt="preview image"
+                      style={{ width: `${width}px`, height: `${height}px` }}
+                      onError={() => setHasError(true)}
+                    />
+                  ) : (
+                    <div 
+                      className="rounded-lg flex flex-col items-center justify-center p-3 bg-neutral-900 border border-neutral-800 text-center"
+                      style={{ width: `${width}px`, height: `${height}px` }}
+                    >
+                      <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider mb-1">Link Preview</span>
+                      <span className="text-xs text-[#c8f135] font-bold truncate max-w-full mb-1.5">{url.replace(/^(https?:\/\/)?(www\.)?/, '')}</span>
+                      <span className="text-[9px] text-neutral-500 leading-normal">Click to visit site</span>
+                    </div>
+                  )}
                 </Link>
               </motion.div>
             )}
