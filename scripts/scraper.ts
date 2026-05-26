@@ -44,7 +44,7 @@ async function scrapeYCombinator() {
       apply_url: "ycombinator.com/apply",
       source_url: "ycombinator.com",
       verified: true,
-      logo: "🏆",
+      logo: "https://logo.clearbit.com/ycombinator.com",
       logo_bg: "var(--accent-dim)"
     };
   } catch (error) {
@@ -91,7 +91,7 @@ async function scrapeMLH() {
         apply_url: url,
         source_url: "mlh.io",
         verified: true,
-        logo: "💻",
+        logo: "https://logo.clearbit.com/mlh.io",
         logo_bg: "var(--pink-dim)"
       });
     });

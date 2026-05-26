@@ -57,7 +57,7 @@ export const opportunities: Opportunity[] = [
     source_url: "ycombinator.com",
     scraped_at: new Date().toISOString(),
     verified: true,
-    logo: "🏆",
+    logo: "https://logo.clearbit.com/ycombinator.com",
     logoBg: "var(--accent-dim)"
   },
   {
@@ -86,7 +86,7 @@ export const opportunities: Opportunity[] = [
     source_url: "ethglobal.com",
     scraped_at: new Date().toISOString(),
     verified: true,
-    logo: "⚡",
+    logo: "https://logo.clearbit.com/ethglobal.com",
     logoBg: "var(--pink-dim)"
   },
   {
@@ -115,7 +115,7 @@ export const opportunities: Opportunity[] = [
     source_url: "sequoiacap.com",
     scraped_at: new Date().toISOString(),
     verified: true,
-    logo: "🏦",
+    logo: "https://logo.clearbit.com/sequoiacap.com",
     logoBg: "var(--blue-dim)"
   },
   {
@@ -144,7 +144,7 @@ export const opportunities: Opportunity[] = [
     source_url: "startup.google.com",
     scraped_at: new Date().toISOString(),
     verified: true,
-    logo: "🎯",
+    logo: "https://logo.clearbit.com/google.com",
     logoBg: "var(--accent-dim)"
   },
   {
@@ -173,7 +173,7 @@ export const opportunities: Opportunity[] = [
     source_url: "mlh.io",
     scraped_at: new Date().toISOString(),
     verified: true,
-    logo: "💻",
+    logo: "https://logo.clearbit.com/mlh.io",
     logoBg: "var(--pink-dim)"
   },
   {
@@ -202,7 +202,7 @@ export const opportunities: Opportunity[] = [
     source_url: "a16z.com",
     scraped_at: new Date().toISOString(),
     verified: true,
-    logo: "⚡",
+    logo: "https://logo.clearbit.com/a16z.com",
     logoBg: "var(--blue-dim)"
   }
 ];

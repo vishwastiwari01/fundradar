@@ -9,10 +9,49 @@ import { WalletCard } from '@/components/ui/WalletCard';
 import { RetroTV } from '@/components/ui/RetroTV';
 import { WordsPullUp } from '@/components/ui/WordsPullUp';
 import { ElegantShape } from '@/components/ui/HeroGeometric';
+import { 
+  Building2, 
+  Rocket, 
+  Zap, 
+  Award, 
+  Cloud, 
+  Globe, 
+  Bot, 
+  Bell, 
+  Send, 
+  SlidersHorizontal, 
+  MapPin, 
+  Tag, 
+  GraduationCap, 
+  Clock, 
+  Check,
+  Sparkles
+} from 'lucide-react';
 
 export default function Home() {
   const [opportunities, setOpportunities] = useState<Opportunity[]>(staticOpportunities);
   const [loadingDb, setLoadingDb] = useState(true);
+
+  const [logoErrors, setLogoErrors] = useState<Record<string, boolean>>({});
+
+  const handleLogoError = (id: string) => {
+    setLogoErrors(prev => ({ ...prev, [id]: true }));
+  };
+
+  const getLogoUrl = (opp: Opportunity): string => {
+    if (opp.logo && (opp.logo.startsWith('http') || opp.logo.includes('.'))) {
+      return opp.logo;
+    }
+    if (opp.source_url) {
+      let domain = opp.source_url.replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0];
+      return `https://logo.clearbit.com/${domain}`;
+    }
+    if (opp.organization) {
+      const cleanOrg = opp.organization.toLowerCase().replace(/\s+/g, '') + '.com';
+      return `https://logo.clearbit.com/${cleanOrg}`;
+    }
+    return '';
+  };
 
   const [activeTab, setActiveTab] = useState('All');
   const [activeFilter, setActiveFilter] = useState('');
@@ -223,31 +262,31 @@ export default function Home() {
           <div className="cat-grid">
             <div className="cat-card" onClick={() => setFilter('vc')}>
               <div className="cat-accent" style={{ background: 'var(--blue)' }}></div>
-              <div className="cat-icon">🏦</div>
+              <div className="cat-icon flex items-center h-8" style={{ color: 'var(--blue)' }}><Building2 size={24} /></div>
               <div className="cat-title">Venture Capital</div>
               <div className="cat-count">840 firms tracked</div>
             </div>
             <div className="cat-card" onClick={() => setFilter('accelerator')}>
               <div className="cat-accent" style={{ background: 'var(--orange)' }}></div>
-              <div className="cat-icon">🚀</div>
+              <div className="cat-icon flex items-center h-8" style={{ color: 'var(--orange)' }}><Rocket size={24} /></div>
               <div className="cat-title">Accelerators</div>
               <div className="cat-count">210 programs</div>
             </div>
             <div className="cat-card" onClick={() => setFilter('hackathon')}>
               <div className="cat-accent" style={{ background: 'var(--pink)' }}></div>
-              <div className="cat-icon">⚡</div>
+              <div className="cat-icon flex items-center h-8" style={{ color: 'var(--pink)' }}><Zap size={24} /></div>
               <div className="cat-title">Hackathons</div>
               <div className="cat-count">120+ this month</div>
             </div>
             <div className="cat-card" onClick={() => setFilter('grant')}>
               <div className="cat-accent" style={{ background: 'var(--accent)' }}></div>
-              <div className="cat-icon">🎯</div>
+              <div className="cat-icon flex items-center h-8" style={{ color: 'var(--accent)' }}><Award size={24} /></div>
               <div className="cat-title">Grants & Awards</div>
               <div className="cat-count">340 active grants</div>
             </div>
             <div className="cat-card" onClick={() => setFilter('credits')}>
               <div className="cat-accent" style={{ background: '#a78bfa' }}></div>
-              <div className="cat-icon">☁️</div>
+              <div className="cat-icon flex items-center h-8" style={{ color: '#a78bfa' }}><Cloud size={24} /></div>
               <div className="cat-title">Cloud Credits</div>
               <div className="cat-count">AWS, GCP, Azure</div>
             </div>
@@ -280,7 +319,7 @@ export default function Home() {
         <div className="listings-grid">
           {/* FILTER PANEL */}
           <div className="filter-panel">
-            <div className="filter-title">⚙ Filters</div>
+            <div className="filter-title flex items-center gap-1.5"><SlidersHorizontal size={14} /> Filters</div>
 
             <div className="filter-group">
               <div className="filter-group-label">Type</div>
@@ -360,7 +399,22 @@ export default function Home() {
             <div className="card-list">
               {filteredOpportunities.map((opp, idx) => (
                 <div key={opp.id} className={`fund-card ${idx === 0 ? 'featured' : ''}`}>
-                  <div className="fund-logo" style={{ background: opp.logoBg || 'var(--accent-dim)' }}>{opp.logo}</div>
+                  <div className="fund-logo" style={{ background: opp.logoBg || 'var(--accent-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                    {(() => {
+                      const logoUrl = getLogoUrl(opp);
+                      const hasError = logoErrors[opp.id] || !logoUrl;
+                      return !hasError ? (
+                        <img 
+                          src={logoUrl} 
+                          alt={opp.organization} 
+                          className="w-full h-full object-contain p-1"
+                          onError={() => handleLogoError(opp.id)}
+                        />
+                      ) : (
+                        <span className="font-bold text-xs uppercase tracking-wider text-neutral-200">{opp.organization?.substring(0, 2)}</span>
+                      );
+                    })()}
+                  </div>
                   <div className="fund-main">
                     <div className="fund-header">
                       {/* Premium hover LinkPreview integrated */}
@@ -372,13 +426,22 @@ export default function Home() {
                     <p className="fund-desc">{opp.description}</p>
                     <div className="fund-meta">
                       {opp.geo_restriction && opp.geo_restriction.map((geo, i) => (
-                        <span key={i} className="fund-meta-item">📍 <strong style={{textTransform:'capitalize'}}>{geo}</strong></span>
+                        <span key={i} className="fund-meta-item flex items-center gap-1">
+                          <MapPin size={12} className="text-neutral-400" />
+                          <strong style={{textTransform:'capitalize'}}>{geo}</strong>
+                        </span>
                       ))}
                       {opp.sector_tags && (
-                        <span className="fund-meta-item">🎯 <strong>{opp.sector_tags.join(', ')}</strong></span>
+                        <span className="fund-meta-item flex items-center gap-1">
+                          <Tag size={12} className="text-neutral-400" />
+                          <strong>{opp.sector_tags.join(', ')}</strong>
+                        </span>
                       )}
                       {opp.eligibility?.students_allowed && (
-                        <span className="fund-meta-item">🎓 <strong>Students Allowed</strong></span>
+                        <span className="fund-meta-item flex items-center gap-1">
+                          <GraduationCap size={12} className="text-neutral-400" />
+                          <strong>Students Allowed</strong>
+                        </span>
                       )}
                     </div>
                     {deckUploaded && (
@@ -393,8 +456,8 @@ export default function Home() {
                   <div className="fund-amount">
                     <div className="amount-num">{formatAmount(opp.amount_min)}</div>
                     <div className="amount-label">{opp.amount_label}</div>
-                    <div className="deadline-badge" style={{ background: opp.deadline_urgency === 'hot' ? 'rgba(255,107,157,0.2)' : 'var(--border2)'}}>
-                      ⏰ {formatDeadline(opp.deadline)}
+                    <div className="deadline-badge flex items-center gap-1" style={{ background: opp.deadline_urgency === 'hot' ? 'rgba(255,107,157,0.2)' : 'var(--border2)'}}>
+                      <Clock size={11} /> {formatDeadline(opp.deadline)}
                     </div>
                     {isPro && (
                       <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: 'var(--accent)', fontWeight: 'bold' }}>
@@ -426,25 +489,25 @@ export default function Home() {
         <div className="steps-grid">
           <div className="step-card">
             <div className="step-num">01 —</div>
-            <div className="step-icon">🕷️</div>
+            <div className="step-icon text-[var(--accent)] flex items-center h-8"><Globe size={28} /></div>
             <div className="step-title">We scrape everything</div>
             <div className="step-desc">Our bots crawl VC websites, accelerator portals, hackathon platforms, and grant databases 24/7. New opportunities added within hours.</div>
           </div>
           <div className="step-card">
             <div className="step-num">02 —</div>
-            <div className="step-icon">🤖</div>
+            <div className="step-icon text-[var(--accent)] flex items-center h-8"><Bot size={28} /></div>
             <div className="step-title">AI ranks & matches</div>
             <div className="step-desc">Claude AI analyzes your startup profile and ranks opportunities by fit, deadline, and success probability. No more irrelevant cold leads.</div>
           </div>
           <div className="step-card">
             <div className="step-num">03 —</div>
-            <div className="step-icon">🔔</div>
+            <div className="step-icon text-[var(--accent)] flex items-center h-8"><Bell size={28} /></div>
             <div className="step-title">Real-time alerts</div>
             <div className="step-desc">Get instant notifications when a new match drops or a deadline is approaching. Email, Slack, and WhatsApp integrations available.</div>
           </div>
           <div className="step-card">
             <div className="step-num">04 —</div>
-            <div className="step-icon">✉️</div>
+            <div className="step-icon text-[var(--accent)] flex items-center h-8"><Send size={28} /></div>
             <div className="step-title">One-click apply</div>
             <div className="step-desc">AI-drafted cold outreach and application templates pre-filled with your data. Apply to 10 opportunities in the time it used to take for one.</div>
           </div>
@@ -482,14 +545,16 @@ export default function Home() {
               </>
             ) : (
               <div style={{ background: 'var(--bg3)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border)' }}>
-                <div style={{ marginBottom: '1rem', fontWeight: 600, color: 'var(--accent)' }}>✅ Pro Active</div>
+                <div style={{ marginBottom: '1rem', fontWeight: 600, color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Check size={16} /> Pro Active
+                </div>
                 {deckUploaded ? (
                   <div style={{ color: 'var(--text2)', fontSize: '0.9rem' }}>
                     <div style={{ marginBottom: '0.5rem' }}>📄 <strong>deck_v3_final.pdf</strong> parsed successfully.</div>
-                    <ul style={{ listStyle: 'none', padding: 0, margin: 0, opacity: 0.8 }}>
-                      <li>✓ Problem & Solution extracted</li>
-                      <li>✓ Market Size analyzed</li>
-                      <li>✓ Traction & Revenue captured</li>
+                    <ul style={{ listStyle: 'none', padding: 0, margin: 0, opacity: 0.8, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <li className="flex items-center gap-1.5"><Check size={12} className="text-[var(--accent)]" /> Problem & Solution extracted</li>
+                      <li className="flex items-center gap-1.5"><Check size={12} className="text-[var(--accent)]" /> Market Size analyzed</li>
+                      <li className="flex items-center gap-1.5"><Check size={12} className="text-[var(--accent)]" /> Traction & Revenue captured</li>
                     </ul>
                     <p style={{ marginTop: '1rem', fontSize: '0.8rem', color: 'var(--pink)' }}>Head to the Explore section and look for the Auto-Apply buttons!</p>
                   </div>
@@ -510,7 +575,7 @@ export default function Home() {
             )}
           </div>
           <div className="premium-visual">
-            <div className="pv-header"><span>Application Form</span><span style={{ color: 'var(--pink)', fontWeight: 700 }}>✨ Auto-filling...</span></div>
+            <div className="pv-header"><span>Application Form</span><span style={{ color: 'var(--pink)', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Sparkles size={12} /> Auto-filling...</span></div>
             <div style={{ fontSize: '0.75rem', color: 'var(--text2)', marginBottom: '4px' }}>Describe your solution</div>
             <div className="pv-line fill"></div>
             <div className="pv-line fill" style={{ width: '70%' }}></div>

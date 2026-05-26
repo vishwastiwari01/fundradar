@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { cn } from "@/lib/utils";
+import { Rocket, Target } from "lucide-react";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -505,7 +506,7 @@ export function CinematicHero({
                 {/* Floating Glass Badges */}
                 <div className="floating-badge absolute flex top-6 lg:top-12 left-[-15px] lg:left-[-80px] floating-ui-badge rounded-xl lg:rounded-2xl p-3 lg:p-4 items-center gap-3 lg:gap-4 z-30">
                   <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-gradient-to-b from-[#c8f135]/20 to-[#c8f135]/5 flex items-center justify-center border border-[#c8f135]/30 shadow-inner">
-                    <span className="text-base lg:text-xl drop-shadow-lg" aria-hidden="true">🚀</span>
+                    <Rocket className="w-5 h-5 text-[#c8f135] drop-shadow-lg" aria-hidden="true" />
                   </div>
                   <div className="text-left">
                     <p className="text-white text-xs lg:text-sm font-bold tracking-tight">$4.2B Indexed</p>
@@ -515,7 +516,7 @@ export function CinematicHero({
 
                 <div className="floating-badge absolute flex bottom-12 lg:bottom-20 right-[-15px] lg:right-[-80px] floating-ui-badge rounded-xl lg:rounded-2xl p-3 lg:p-4 items-center gap-3 lg:gap-4 z-30">
                   <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-gradient-to-b from-[#ff6b9d]/20 to-[#ff6b9d]/5 flex items-center justify-center border border-[#ff6b9d]/30 shadow-inner">
-                    <span className="text-base lg:text-lg drop-shadow-lg" aria-hidden="true">🎯</span>
+                    <Target className="w-5 h-5 text-[#ff6b9d] drop-shadow-lg" aria-hidden="true" />
                   </div>
                   <div className="text-left">
                     <p className="text-white text-xs lg:text-sm font-bold tracking-tight">2400+ Live</p>
