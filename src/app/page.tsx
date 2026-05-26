@@ -32,24 +32,41 @@ export default function Home() {
   const [opportunities, setOpportunities] = useState<Opportunity[]>(staticOpportunities);
   const [loadingDb, setLoadingDb] = useState(true);
 
+  const [mounted, setMounted] = useState(false);
   const [logoErrors, setLogoErrors] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleLogoError = (id: string) => {
     setLogoErrors(prev => ({ ...prev, [id]: true }));
   };
 
   const getLogoUrl = (opp: Opportunity): string => {
-    if (opp.logo && (opp.logo.startsWith('http') || opp.logo.includes('.'))) {
+    let domain = '';
+    
+    if (opp.logo && opp.logo.includes('logo.clearbit.com/')) {
+      domain = opp.logo.split('logo.clearbit.com/')[1];
+    } 
+    else if (opp.source_url) {
+      domain = opp.source_url.replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0];
+    } 
+    else if (opp.logo && opp.logo.includes('.') && !opp.logo.startsWith('http')) {
+      domain = opp.logo;
+    }
+    else if (opp.organization) {
+      domain = opp.organization.toLowerCase().replace(/\s+/g, '') + '.com';
+    }
+
+    if (domain) {
+      return `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
+    }
+
+    if (opp.logo && opp.logo.startsWith('http')) {
       return opp.logo;
     }
-    if (opp.source_url) {
-      let domain = opp.source_url.replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0];
-      return `https://logo.clearbit.com/${domain}`;
-    }
-    if (opp.organization) {
-      const cleanOrg = opp.organization.toLowerCase().replace(/\s+/g, '') + '.com';
-      return `https://logo.clearbit.com/${cleanOrg}`;
-    }
+
     return '';
   };
 
@@ -401,6 +418,9 @@ export default function Home() {
                 <div key={opp.id} className={`fund-card ${idx === 0 ? 'featured' : ''}`}>
                   <div className="fund-logo" style={{ background: opp.logoBg || 'var(--accent-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                     {(() => {
+                      if (!mounted) {
+                        return <span className="font-bold text-xs uppercase tracking-wider text-neutral-200">{opp.organization?.substring(0, 2)}</span>;
+                      }
                       const logoUrl = getLogoUrl(opp);
                       const hasError = logoErrors[opp.id] || !logoUrl;
                       return !hasError ? (
